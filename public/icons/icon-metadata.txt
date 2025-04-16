@@ -1,0 +1,6 @@
+Icons would normally be here:
+- icon-192x192.png (192x192 pixels)
+- icon-512x512.png (512x512 pixels)
+
+For now, we'll run without them, but you should add proper icons
+before deploying to production. 
