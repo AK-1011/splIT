@@ -37,13 +37,20 @@ export default function GroupsPage() {
         };
       }).filter(member => member.name !== '');
 
+      // Get current user
+      const currentUser = await db.users.where('authToken').notEqual('').first();
+      if (!currentUser) {
+        throw new Error('No authenticated user found');
+      }
+
       await db.groups.add({
         id: `group-${Date.now()}`,
         name: newGroupName.trim(),
         members,
         createdAt: now,
         updatedAt: now,
-        synced: false
+        synced: false,
+        userId: currentUser.id
       });
       setNewGroupName('');
       setSelectedFriends([]);
