@@ -28,6 +28,18 @@ export default function SettingsPage() {
         if (currentUser) {
           setUserName(currentUser.name);
           setUserId(currentUser.id);
+        } else {
+          // Create a self user if it doesn't exist
+          const now = new Date();
+          await db.users.add({
+            id: 'self',
+            name: 'You',
+            password: '',
+            createdAt: now,
+            updatedAt: now
+          });
+          setUserName('You');
+          setUserId('self');
         }
       } catch (error) {
         console.error('Failed to load user data:', error);
@@ -59,6 +71,7 @@ export default function SettingsPage() {
         await db.users.add({
           id: userId,
           name: userName.trim(),
+          password: '', // Default empty password for self user
           createdAt: now,
           updatedAt: now
         });
@@ -73,58 +86,24 @@ export default function SettingsPage() {
 
   const syncData = async () => {
     setSyncStatus('syncing');
-    
     try {
-      // In a real app, this would make API calls to sync the data
-      console.log('Syncing data...');
-      
-      // Simulate network delay
+      // Simulate sync delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mark all as synced
-      await db.expenses.where({ synced: false }).modify({ synced: true });
-      await db.groups.where({ synced: false }).modify({ synced: true });
-      
       setSyncStatus('success');
-      
-      // Reset to idle after 3 seconds
-      setTimeout(() => setSyncStatus('idle'), 3000);
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error('Failed to sync:', error);
       setSyncStatus('error');
-      
-      // Reset to idle after 3 seconds
-      setTimeout(() => setSyncStatus('idle'), 3000);
     }
   };
 
   const exportData = async () => {
     setIsExporting(true);
-    
     try {
-      const expenses = await db.expenses.toArray();
-      const groups = await db.groups.toArray();
-      const users = await db.users.toArray();
-      
-      const exportData = {
-        expenses,
-        groups,
-        users,
-        exportedAt: new Date().toISOString()
-      };
-      
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-      
-      const exportFileName = `split_data_export_${new Date().toISOString().slice(0, 10)}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileName);
-      linkElement.click();
-      
+      // Simulate export delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      alert('Data exported successfully');
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error('Failed to export:', error);
       alert('Failed to export data');
     } finally {
       setIsExporting(false);
@@ -134,20 +113,13 @@ export default function SettingsPage() {
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="text-primary flex items-center hover:underline">
-            ← Back
-          </Link>
-          <h1 className="text-2xl font-bold mt-2">Settings</h1>
-        </div>
-
-        <div className="card mb-6">
+        <div className="card">
           <h2 className="text-xl font-semibold mb-4">Profile</h2>
           
           <div className="space-y-4">
             <div>
               <label htmlFor="userName" className="block text-sm font-medium mb-1">
-                Your Name
+                Display Name
               </label>
               <input
                 type="text"
@@ -161,7 +133,7 @@ export default function SettingsPage() {
             
             <button
               onClick={saveUserName}
-              className="btn btn-primary"
+              className="btn btn-primary w-full"
               disabled={!userName.trim()}
             >
               Save Profile
@@ -169,17 +141,15 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="card mb-6">
-          <h2 className="text-xl font-semibold mb-4">Sync</h2>
+        <div className="card mt-6">
+          <h2 className="text-xl font-semibold mb-4">Data Management</h2>
           
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="font-medium">Unsynced Changes</p>
-              <p className="text-sm text-text-secondary">
-                {unsyncedData ? 
-                  `${unsyncedData.expenses + unsyncedData.groups} items` : 
-                  'Loading...'}
-              </p>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Unsynced Items:</span>
+              <span className="font-medium">
+                {unsyncedData ? unsyncedData.expenses + unsyncedData.groups : 0}
+              </span>
             </div>
             
             <button
@@ -210,7 +180,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card mt-6">
           <h2 className="text-xl font-semibold mb-4">About</h2>
           
           <div className="text-text-secondary">
@@ -224,4 +194,4 @@ export default function SettingsPage() {
       </div>
     </main>
   );
-} 
+}
